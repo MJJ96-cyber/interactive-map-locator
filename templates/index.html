@@ -252,37 +252,36 @@
         }
 
         // Function to drop a pin at a specific location
-function dropUserPin(location) {
-    if (userMarker) {
-        userMarker.setPosition(location);
-    } else {
-        userMarker = new google.maps.Marker({
-            position: location,
-            map: map,
-            title: 'Your Location',
-            icon: {
-                url: "http://maps.google.com/mapfiles/ms/icons/red-dot.png", // Red marker for user
-                scaledSize: new google.maps.Size(30, 30),
-            },
-        });
+            function dropUserPin(location) {
+                if (userMarker) {
+                    userMarker.setPosition(location);
+                } else {
+                    userMarker = new google.maps.Marker({
+                    position: location,
+                    map: map,
+                    title: 'Your Location',
+                    icon: {
+                    url: "http://maps.google.com/mapfiles/ms/icons/red-dot.png", // Red marker for user
+                    scaledSize: new google.maps.Size(30, 30),
+                },
+            });
 
-        userMarker.addListener('click', () => infoWindow.open(map, userMarker));
-    }
+                userMarker.addListener('click', () => infoWindow.open(map, userMarker));
+            }
 
-    // Update the address input with the geocoded address
-    geocoder.geocode({ location: location }, (results, status) => {
-        if (status === 'OK' && results[0]) {
-            const address = results[0].formatted_address;
-            document.getElementById('address-input').value = address;
+        // Update the address input with the geocoded address
+             geocoder.geocode({ location: location }, (results, status) => {
+                if (status === 'OK' && results[0]) {
+                const address = results[0].formatted_address;
+                document.getElementById('address-input').value = address;
 
-            // Optionally fetch nearby places based on the selected category and radius
+        // Optionally fetch nearby places based on the selected category and radius
             fetchNearbyPlaces(location, address);
-        } else {
+            } else {
             console.error('Geocoder failed due to: ' + status);
-        }
-    });
-}
-
+            }
+        });
+    }
 
         // Fetch nearby places and update the info window with Street View images
         function fetchNearbyPlaces(location, address) {
