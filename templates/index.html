@@ -150,10 +150,12 @@
         let geocoder;
         let userMarker = null;
         let markers = [];
+        let streetViewService;
 
         function initMap() {
-            // Initialize geocoder and info window
+            // Initialize geocoder, streetViewService, and info window
             geocoder = new google.maps.Geocoder();
+            streetViewService = new google.maps.StreetViewService();
             infoWindow = new google.maps.InfoWindow();
 
             // Initialize the map centered at (0, 0)
@@ -171,6 +173,23 @@
             const autocomplete = new google.maps.places.Autocomplete(addressInput);
             autocomplete.bindTo('bounds', map);
             autocomplete.addListener('place_changed', () => handlePlaceChange(autocomplete));
+
+            // Attempt to get user's location
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const pos = {
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude,
+                        };
+                        map.setCenter(pos);
+                        dropUserPin(pos); // Drop pin at user's location
+                    },
+                    () => handleLocationError(true, infoWindow, map.getCenter())
+                );
+            } else {
+                handleLocationError(false, infoWindow, map.getCenter());
+            }
         }
 
         // Handle place selection from autocomplete
@@ -212,7 +231,7 @@
             });
         }
 
-        // Fetch nearby places and update the info window
+        // Fetch nearby places and update the info window with Street View images
         function fetchNearbyPlaces(location, address) {
             const service = new google.maps.places.PlacesService(map);
             service.nearbySearch({
@@ -227,10 +246,9 @@
                     if (place.types && place.types.length > 0) content += `Type: ${place.types[0].replace(/_/g, ' ')}<br>`;
                     if (place.rating) content += `Rating: ${place.rating}/5<br>`;
                     if (place.user_ratings_total) content += `Reviews: ${place.user_ratings_total}<br>`;
-                    if (place.photos && place.photos.length > 0) {
-                        const photoUrl = place.photos[0].getUrl({ maxWidth: 300 });
-                        content += `<img src="${photoUrl}" alt="${place.name}" style="width:100%; max-width:300px;"><br>`;
-                    }
+
+                    // Get the Street View image
+                    getStreetViewImage(place.geometry.location, content);
 
                     content += '</div>';
 
@@ -239,6 +257,24 @@
                 } else {
                     infoWindow.setContent(`<div><strong>${address}</strong></div>`);
                     infoWindow.open(map, userMarker);
+                }
+            });
+        }
+
+        // Get the Street View image for the place
+        function getStreetViewImage(location, content) {
+            streetViewService.getPanorama({
+                location: location,
+                radius: 200, // Increased radius
+            }, (data, status) => {
+                if (status === google.maps.StreetViewStatus.OK) {
+                    const panoramaUrl = data.location.pano;
+                    const streetViewImage = `https://maps.googleapis.com/maps/api/streetview?size=500x300&pano=${panoramaUrl}`;
+                    content += `<img src="${streetViewImage}" alt="Street View" style="width:100%; max-width:500px;"><br>`;
+                } else {
+                    // Fallback message if no image is found
+                    content += `<p>Difficulty obtaining image. Here is some interesting information about this location:</p>`;
+                    content += `<p>For more details, check out the historical information about this place, such as its founding, notable events, or key figures associated with it.</p>`;
                 }
             });
         }
@@ -287,9 +323,12 @@
                     if (details.formatted_phone_number) content += `Phone: ${details.formatted_phone_number}<br>`;
                     if (details.website) content += `<a href="${details.website}" target="_blank">Website</a><br>`;
                     if (details.photos && details.photos.length > 0) {
-                        const photoUrl = details.photos[0].getUrl({ maxWidth: 300 });
-                        content += `<img src="${photoUrl}" alt="${details.name}" style="width:100%; max-width:300px;"><br>`;
+                        const photoUrl = details.photos[0].getUrl({ maxWidth: 500, maxHeight: 500 });
+                        content += `<img src="${photoUrl}" alt="${details.name}" style="width:100%; max-width:500px;"><br>`;
                     }
+
+                    // Get Street View Image
+                    getStreetViewImage(details.geometry.location, content);
 
                     content += '</div>';
 
@@ -307,21 +346,44 @@
             markers = [];
         }
 
-        // Event listeners for category and radius changes
+        // Handle location errors (when user denies or browser has issues)
+        function handleLocationError(browserHasGeolocation, infoWindow, pos) {
+            infoWindow.setPosition(pos);
+            infoWindow.setContent(browserHasGeolocation ?
+                'Error: The Geolocation service failed.' :
+                'Error: Your browser does not support geolocation.');
+            infoWindow.open(map);
+        }
+
+        // Event listener to update map on category or radius change
         document.getElementById('category').addEventListener('change', updateMap);
         document.getElementById('radius').addEventListener('change', updateMap);
 
-        // Load Google Maps API
-        function loadGoogleMapsScript() {
-            const script = document.createElement('script');
-            script.src = "https://maps.googleapis.com/maps/api/js?key=AIzaSyBVu-O6H8tM6EZE6_g-uAdj63XwEHa8CVY&libraries=places,geometry&callback=initMap";
-            script.async = true;
-            script.defer = true;
-            document.head.appendChild(script);
-        }
-
-        loadGoogleMapsScript();
+        // Initialize the map
+        initMap();
     </script>
+
+    <!-- Include Google Maps API with key (replace with your own API key) -->
+    <script>
+        // Function to dynamically load the Google Maps script
+        async function loadGoogleMapsScript() {
+            try {
+                const response = await fetch('/get-api-key');
+                const data = await response.json();
+                const script = document.createElement('script');
+                script.src = `https://maps.googleapis.com/maps/api/js?key=${data.apiKey}&libraries=places&callback=initMap&v=weekly`;
+                script.async = true;
+                script.defer = true;
+                document.head.appendChild(script);
+            } catch (error) {
+                console.error('Error loading Google Maps API:', error);
+            }
+        }
+    
+        // Load Google Maps script once the page is loaded
+        window.onload = loadGoogleMapsScript;
+    </script>
+    
 
 </body>
 </html>
