@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -86,7 +87,8 @@
             outline: none;
             cursor: pointer;
             width: 100%;
-            max-width: 180px; /* Same width as the dropdown */
+            max-width: 180px;
+            /* Same width as the dropdown */
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
             background-color: #fff;
             color: #333;
@@ -116,7 +118,8 @@
                 gap: 15px;
             }
 
-            #address-input, select {
+            #address-input,
+            select {
                 width: 100%;
                 max-width: 100%;
             }
@@ -131,7 +134,8 @@
                 font-size: 1.4rem;
             }
 
-            #address-input, select {
+            #address-input,
+            select {
                 font-size: 14px;
                 padding: 10px;
             }
@@ -142,6 +146,7 @@
         }
     </style>
 </head>
+
 <body>
 
     <h1>Interactive Address & Places Map</h1>
@@ -190,7 +195,10 @@
 
             // Initialize the map centered at (0, 0)
             map = new google.maps.Map(document.getElementById('map'), {
-                center: { lat: 0, lng: 0 },
+                center: {
+                    lat: 0,
+                    lng: 0
+                },
                 zoom: 12,
                 mapTypeId: google.maps.MapTypeId.ROADMAP,
             });
@@ -252,36 +260,38 @@
         }
 
         // Function to drop a pin at a specific location
-            function dropUserPin(location) {
-                if (userMarker) {
-                    userMarker.setPosition(location);
-                } else {
-                    userMarker = new google.maps.Marker({
+        function dropUserPin(location) {
+            if (userMarker) {
+                userMarker.setPosition(location);
+            } else {
+                userMarker = new google.maps.Marker({
                     position: location,
                     map: map,
                     title: 'Your Location',
                     icon: {
-                    url: "http://maps.google.com/mapfiles/ms/icons/red-dot.png", // Red marker for user
-                    scaledSize: new google.maps.Size(30, 30),
-                },
-            });
+                        url: "http://maps.google.com/mapfiles/ms/icons/red-dot.png", // Red marker for user
+                        scaledSize: new google.maps.Size(30, 30),
+                    },
+                });
 
                 userMarker.addListener('click', () => infoWindow.open(map, userMarker));
             }
 
-        // Update the address input with the geocoded address
-             geocoder.geocode({ location: location }, (results, status) => {
+            // Update the address input with the geocoded address
+            geocoder.geocode({
+                location: location
+            }, (results, status) => {
                 if (status === 'OK' && results[0]) {
-                const address = results[0].formatted_address;
-                document.getElementById('address-input').value = address;
+                    const address = results[0].formatted_address;
+                    document.getElementById('address-input').value = address;
 
-        // Optionally fetch nearby places based on the selected category and radius
-            fetchNearbyPlaces(location, address);
-            } else {
-            console.error('Geocoder failed due to: ' + status);
-            }
-        });
-    }
+                    // Optionally fetch nearby places based on the selected category and radius
+                    fetchNearbyPlaces(location, address);
+                } else {
+                    console.error('Geocoder failed due to: ' + status);
+                }
+            });
+        }
 
         // Fetch nearby places and update the info window with Street View images
         function fetchNearbyPlaces(location, address) {
@@ -295,7 +305,8 @@
                     let content = `<div><strong>${address}</strong><br>`;
 
                     if (place.name) content += `<em>Place Name: ${place.name}</em><br>`;
-                    if (place.types && place.types.length > 0) content += `Type: ${place.types[0].replace(/_/g, ' ')}<br>`;
+                    if (place.types && place.types.length > 0) content +=
+                        `Type: ${place.types[0].replace(/_/g, ' ')}<br>`;
                     if (place.rating) content += `Rating: ${place.rating}/5<br>`;
                     if (place.user_ratings_total) content += `Reviews: ${place.user_ratings_total}<br>`;
 
@@ -321,12 +332,16 @@
             }, (data, status) => {
                 if (status === google.maps.StreetViewStatus.OK) {
                     const panoramaUrl = data.location.pano;
-                    const streetViewImage = `https://maps.googleapis.com/maps/api/streetview?size=500x300&pano=${panoramaUrl}`;
-                    content += `<img src="${streetViewImage}" alt="Street View" style="width:100%; max-width:500px;"><br>`;
+                    const streetViewImage =
+                        `https://maps.googleapis.com/maps/api/streetview?size=500x300&pano=${panoramaUrl}`;
+                    content +=
+                        `<img src="${streetViewImage}" alt="Street View" style="width:100%; max-width:500px;"><br>`;
                 } else {
                     // Fallback message if no image is found
-                    content += `<p>Difficulty obtaining image. Here is some interesting information about this location:</p>`;
-                    content += `<p>For more details, check out the historical information about this place, such as its founding, notable events, or key figures associated with it.</p>`;
+                    content +=
+                        `<p>Difficulty obtaining image. Here is some interesting information about this location:</p>`;
+                    content +=
+                        `<p>For more details, check out the historical information about this place, such as its founding, notable events, or key figures associated with it.</p>`;
                 }
             });
         }
@@ -367,16 +382,25 @@
 
             markers.push(marker);
 
-            service.getDetails({ placeId: place.place_id }, (details, status) => {
+            service.getDetails({
+                placeId: place.place_id
+            }, (details, status) => {
                 if (status === google.maps.places.PlacesServiceStatus.OK) {
                     let content = `<div><strong>${details.name}</strong><br>`;
 
-                    if (details.types && details.types.length > 0) content += `<em>Type: ${details.types[0].replace(/_/g, ' ')}</em><br>`;
-                    if (details.formatted_phone_number) content += `Phone: ${details.formatted_phone_number}<br>`;
-                    if (details.website) content += `<a href="${details.website}" target="_blank">Website</a><br>`;
+                    if (details.types && details.types.length > 0) content +=
+                        `<em>Type: ${details.types[0].replace(/_/g, ' ')}</em><br>`;
+                    if (details.formatted_phone_number) content +=
+                        `Phone: ${details.formatted_phone_number}<br>`;
+                    if (details.website) content +=
+                        `<a href="${details.website}" target="_blank">Website</a><br>`;
                     if (details.photos && details.photos.length > 0) {
-                        const photoUrl = details.photos[0].getUrl({ maxWidth: 500, maxHeight: 500 });
-                        content += `<img src="${photoUrl}" alt="${details.name}" style="width:100%; max-width:500px;"><br>`;
+                        const photoUrl = details.photos[0].getUrl({
+                            maxWidth: 500,
+                            maxHeight: 500
+                        });
+                        content +=
+                            `<img src="${photoUrl}" alt="${details.name}" style="width:100%; max-width:500px;"><br>`;
                     }
 
                     // Get Street View Image
@@ -402,7 +426,7 @@
         function handleLocationError(browserHasGeolocation, infoWindow, pos) {
             infoWindow.setPosition(pos);
             infoWindow.setContent(browserHasGeolocation ?
-                'Error: The Geolocation service failed.' :
+                'Error: Failed to obtain location.' :
                 'Error: Your browser does not support geolocation.');
             infoWindow.open(map);
         }
@@ -415,7 +439,7 @@
         initMap();
     </script>
 
-    <!-- Include Google Maps API with key (replace with your own API key) -->
+    <!-- Call API key -->
     <script>
         // Function to dynamically load the Google Maps script
         async function loadGoogleMapsScript() {
@@ -423,7 +447,8 @@
                 const response = await fetch('/get-api-key');
                 const data = await response.json();
                 const script = document.createElement('script');
-                script.src = `https://maps.googleapis.com/maps/api/js?key=${data.apiKey}&libraries=places&callback=initMap&v=weekly`;
+                script.src =
+                    `https://maps.googleapis.com/maps/api/js?key=${data.apiKey}&libraries=places&callback=initMap&v=weekly`;
                 script.async = true;
                 script.defer = true;
                 document.head.appendChild(script);
@@ -431,11 +456,12 @@
                 console.error('Error loading Google Maps API:', error);
             }
         }
-    
+
         // Load Google Maps script once the page is loaded
         window.onload = loadGoogleMapsScript;
     </script>
-    
+
 
 </body>
+
 </html>
